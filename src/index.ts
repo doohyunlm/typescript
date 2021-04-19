@@ -4,17 +4,17 @@ class Block {
     static calculateBlockHash = (
         index: number,
         previousHash: string,
-        timestamp: number,
-        data: string
+        data: string,
+        timestamp: number
     ): string =>
-        CryptoJS.SHA256(index + previousHash + timestamp + data).toString();
+        CryptoJS.SHA256(index + previousHash + data + timestamp).toString();
 
     static validateStructure = (aBlock: Block): boolean =>
         typeof aBlock.index === "number" &&
         typeof aBlock.hash === "string" &&
         typeof aBlock.previousHash === "string" &&
-        typeof aBlock.timestamp === "number" &&
-        typeof aBlock.data === "string";
+        typeof aBlock.data === "string" &&
+        typeof aBlock.timestamp === "number";
 
     public index: number;
     public hash: string;
@@ -54,8 +54,8 @@ const createNewBlock = (data: string): Block => {
     const newHash: string = Block.calculateBlockHash(
         newIndex,
         previousBlock.hash,
-        newTimestamp,
-        data
+        data,
+        newTimestamp
     );
     const newBlock: Block = new Block(
         newIndex,
@@ -67,6 +67,14 @@ const createNewBlock = (data: string): Block => {
     return newBlock;
 };
 
+const getHashforBlock = (aBlock: Block): string =>
+    Block.calculateBlockHash(
+        aBlock.index,
+        aBlock.previousHash,
+        aBlock.data,
+        aBlock.timestamp
+    );
+
 const isBlockValid = (candidateBlock: Block, previousBlock: Block): boolean => {
     if (!Block.validateStructure(candidateBlock)) {
         return false;
@@ -74,6 +82,16 @@ const isBlockValid = (candidateBlock: Block, previousBlock: Block): boolean => {
         return false;
     } else if (previousBlock.hash !== candidateBlock.previousHash) {
         return false;
+    } else if (getHashforBlock(candidateBlock) !== candidateBlock.hash) {
+        return false;
+    } else {
+        return true;
+    }
+};
+
+const addBlock = (candidateBlock: Block): void => {
+    if (isBlockValid(candidateBlock, getLatestBlock())) {
+        blockchain.push(candidateBlock);
     }
 };
 
